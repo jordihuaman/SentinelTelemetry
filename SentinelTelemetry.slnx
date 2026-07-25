@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="SentinelTelemetry.Agent/SentinelTelemetry.Telemetry.csproj" />
+  <Project Path="SentinelTelemetry.Core/SentinelTelemetry.Core.csproj" />
+  <Project Path="SentinelTelemetry.Service/SentinelTelemetry.Service.csproj" />
+  <Project Path="SentinelTelemetry.Storage/SentinelTelemetry.Persistence.csproj" />
+  <Project Path="SentinelTelemetry.UI/SentinelTelemetry.UI.WPF.csproj" />
+</Solution>
