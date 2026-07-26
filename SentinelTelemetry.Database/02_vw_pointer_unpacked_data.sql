@@ -6,7 +6,7 @@
 CREATE VIEW vw_pointer_unpacked_data AS         
     SELECT
         E.id_event,
-        E.timestamp,
+        E.[timestamp],
         E.id_source,
         E.id_category,
         E.id_version,
