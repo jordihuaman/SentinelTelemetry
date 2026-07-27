@@ -2,7 +2,7 @@
     Descripción: A partir de la vista de keyboard. Genera resumen de cuantas pulsaciones por día
 	se generan. 
 */ 
-CREATE VIEW vw_keystrokes_per_day AS
+CREATE VIEW vw_keyboard_daily_summary AS
 	SELECT 
 		CAST(DATEADD(HOUR, -5, [timestamp]) AS DATE) Fecha,
 		event_type,
