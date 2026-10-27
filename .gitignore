@@ -361,3 +361,40 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# ============================================================
+# Específico de SentinelTelemetry
+# ============================================================
+
+# Power BI: temporales y copias de seguridad.
+# NO se ignora *.pbix: el informe se versiona a propósito.
+~$*.pbix
+*.pbix~
+*.pbix.tmp
+*.pbit.tmp
+~$*.pbit
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+ehthumbs.db
+desktop.ini
+
+# Editores
+.vscode/
+.idea/
+*.iml
+.history/
+
+# Configuración local y secretos
+appsettings.Local.json
+appsettings.*.local.json
+.env
+.env.*
+!.env.example
+*.p12
+*.key
+
+# Respaldos de SQL Server
+*.bak
+*.trn
