@@ -27,7 +27,7 @@ CREATE TABLE Events
 	id_source INT NOT NULL,
 	id_version INT NOT NULL,
 	event_type NVARCHAR(100) NOT NULL,
-	data_json NVARCHAR(MAX) NOT NULL
+	data_json NVARCHAR(MAX) NOT NULL,
 
 	CONSTRAINT fk_events_source   FOREIGN KEY (id_source)   
 	REFERENCES dbo.Source (id_source),
