@@ -12,6 +12,7 @@ expone con **vistas SQL** listas para **Power BI**.
 [![.NET](https://img.shields.io/badge/.NET-10.0-512BD4?logo=dotnet&logoColor=white)](https://dotnet.microsoft.com/)
 [![Platform](https://img.shields.io/badge/Platform-Windows-0078D6?logo=windows&logoColor=white)](#requisitos)
 [![SQL Server](https://img.shields.io/badge/SQL%20Server-2019%2B-CC2927?logo=microsoftsqlserver&logoColor=white)](#-modelo-de-datos)
+[![Power BI](https://img.shields.io/badge/Power%20BI-informe-F2C811?logo=powerbi&logoColor=black)](#-dashboard-power-bi)
 [![Language](https://img.shields.io/badge/C%23-14-239120?logo=csharp&logoColor=white)](#-stack-tecnológico)
 [![Estado](https://img.shields.io/badge/estado-en%20desarrollo-orange)](#-roadmap)
 
@@ -31,6 +32,7 @@ expone con **vistas SQL** listas para **Power BI**.
 - [Catálogo de eventos](#-catálogo-de-eventos)
 - [Modelo de datos](#-modelo-de-datos)
 - [Vistas SQL](#-vistas-sql)
+- [Dashboard Power BI](#-dashboard-power-bi)
 - [Uso en Power BI](#-uso-en-power-bi)
 - [Extender con un nuevo collector](#-extender-con-un-nuevo-collector)
 - [Privacidad y datos sensibles](#-privacidad-y-datos-sensibles)
@@ -143,7 +145,10 @@ flowchart LR
 SentinelTelemetry/
 ├── SentinelTelemetry.slnx                 # Solución (formato slnx)
 ├── README.md                              # Este archivo
-├── DOCUMENTACION_POWERBI.md               # Guía de datos + Power BI
+├── DOCUMENTACION_POWERBI.md               # Contexto técnico y de datos
+├── PowerBI/
+│   ├── SentinelTelemetryReport.pbix       # Informe: 4 páginas, 36 medidas
+│   └── GUIA_MEDIDAS_DAX.md                # Paso a paso de DAX y páginas
 │
 ├── SentinelTelemetry.Core/                # 📦 Modelos e interfaces (net10.0)
 │   ├── Models/
@@ -178,7 +183,8 @@ SentinelTelemetry/
     ├── 02_vw_pointer_unpacked_data.sql
     ├── 03_vw_window_activity_duration.sql
     ├── ... 
-    └── 15_vw_transitions_between_apps.sql
+    ├── 15_vw_transitions_between_apps.sql
+    └── 16_index_events_idle.sql
 ```
 
 > ℹ️ Nota: algunos nombres de **carpeta** y de **`.csproj`** no coinciden
@@ -208,7 +214,7 @@ SentinelTelemetry/
 ### 1. Clonar y compilar
 
 ```bash
-git clone https://github.com/<tu-usuario>/SentinelTelemetry.git
+git clone https://github.com/jordihuaman/SentinelTelemetry.git
 cd SentinelTelemetry
 dotnet build SentinelTelemetry.slnx
 ```
@@ -383,13 +389,64 @@ Ejemplo de `data_json`:
 
 ---
 
+## 📊 Dashboard Power BI
+
+El informe está en [`PowerBI/SentinelTelemetryReport.pbix`](./PowerBI/SentinelTelemetryReport.pbix)
+y consume las vistas directamente, sin ETL intermedio: **4 páginas visibles, 36 medidas DAX** y una
+tabla `_Medidas` aislada para no mezclar medidas con columnas.
+
+**Periodo:** 23/07/2026 – 16/10/2026 (86 días) · **281.309 eventos** reales.
+
+| Página | Pregunta que responde | Visuales principales |
+|---|---|---|
+| **Resumen Diario** | ¿Cómo se reparte el día? | Tarjetas, línea activo/inactivo, anillo de apps, tabla por día |
+| **Uso de Aplicaciones** | ¿Qué apps uso y cuánto? | Top 10 por tiempo, tabla con % del total, dispersión apps vs eventos |
+| **Actividad e Inactividad** | ¿Cuánto trabajo real frente a idle? | Tarjetas activo/inactivo, línea diaria, anillo 69/31, % por día de la semana |
+| **Transiciones** | ¿A dónde salto desde cada app? | Top 10 de pares, matriz 10×10 con mapa de calor |
+
+### Números que salieron
+
+| Métrica | Valor |
+|---|---:|
+| Eventos capturados | 281.309 |
+| Pulsaciones de teclado | 373.104 |
+| Tiempo activo | 1.381,31 h (69,4%) |
+| Tiempo inactivo | 609,09 h (30,6%) |
+| Apps distintas usadas | 115 |
+| Transiciones entre apps | 16.662 en 833 pares |
+
+- **69,4% del tiempo fue actividad real.** El resto son pausas, bloqueos y noches.
+- **Sábado es el día más activo (85,6%) y domingo el menos (44,4%).**
+- **`explorer` es el hub:** 4.064 salidas hacia 88 destinos distintos. El par más frecuente es
+  `explorer → chrome` (719 veces).
+- **`SSMS → brave` concentra el 41,9% de las salidas de SSMS**, aunque en volumen absoluto gane
+  `explorer → chrome`. Son dos preguntas distintas: hábito de una app vs tráfico total.
+
+### Decisiones técnicas que costaron
+
+- `vw_idle_activity_periods` duplicaba la línea de tiempo: emparejaba cada `IdleStarted` con el
+  siguiente `IdleStarted` (y cada `IdleEnded` con el siguiente `IdleEnded`). Se corrigió con un solo
+  `LEAD` y el índice `16_index_events_idle.sql`. Ahora `Activo + Idle = 1.990,4 h` exactas.
+- Las fechas se convierten de **UTC a hora Perú en DAX** (`[timestamp] - TIME(5,0,0)`), no en SQL,
+  y `DimFecha` está marcada como tabla de fechas con `Mes` ordenado por `MesNum`.
+- `vw_window_activity_duration` todavía aplica un **tope de 30 minutos** por evento. La página de
+  apps usa `Tiempo en App (h) con tope`; queda pendiente la duración real por ventana.
+- El PBIX guarda una copia del periodo. Para **Actualizar** necesitas la base local con los datos.
+
+👉 Paso a paso de las 36 medidas, fórmulas y trampas:
+[`PowerBI/GUIA_MEDIDAS_DAX.md`](./PowerBI/GUIA_MEDIDAS_DAX.md).
+
+---
+
 ## 📈 Uso en Power BI
 
-1. **Obtener datos → SQL Server** → servidor `localhost`, base `SentinelTelemetryDb`, autenticación Windows.
-2. **Modelo en estrella:** hecho `Events` + dimensiones `Source`/`Category`/`Version` + una `DimFecha`.
-3. **Zona horaria:** `timestamp` es UTC. Solo `vw_keyboard_daily_summary` y
-   `vw_keyboard_typing_metrics` aplican **UTC-5**; en el resto convierte con
-   `[timestamp] - TIME(5,0,0)` en DAX o en Power Query.
+1. **Obtener datos → SQL Server** → tu instancia (por ejemplo `.\SQLEXPRESS`), base
+   `SentinelTelemetryDb`, autenticación Windows.
+2. **Modelo del informe:** las vistas actúan como tablas de hechos (ventana, idle, transiciones,
+   teclado, puntero) + `DimFecha` + `_Medidas`. Los catálogos `Source`/`Category`/`Version` se
+   quedan solo en la base.
+3. **Zona horaria:** `timestamp` es UTC. Las vistas de teclado ya traen **UTC-5**; en el informe el
+   resto se convierte con columnas calculadas de DAX y `DimFecha`.
 4. **Limpieza:** `ClicIzquierdo`/`ClickDerecho` llegan como texto `"true"/"false"`;
    conviértelos a booleano. `Longitud_Contenido` a entero.
 
@@ -471,11 +528,12 @@ rutas de archivos, tipos de contenido del portapapeles y patrones de actividad.
 - [x] Collectors de ventana, apps, teclado, ratón, portapapeles, explorador, archivos, idle y sesión.
 - [x] Vistas SQL de desempaquetado y métricas.
 - [x] Control por bandeja (pausar/reanudar/cerrar).
+- [x] Informe Power BI con 4 páginas y 36 medidas sobre las vistas.
 - [ ] UI WPF para exploración en vivo (proyecto ya reservado).
 - [ ] Migraciones/esquema versionado con scripts idempotentes.
 - [ ] Soporte multi-equipo (dimensión `Device`).
 - [ ] Empaquetado como instalador/servicio de Windows.
-- [ ] Exportadores/plantillas de Power BI listas para usar.
+- [ ] Empaquetar el informe como plantilla (`.pbit`) reutilizable.
 
 ---
 
