@@ -13,6 +13,7 @@ expone con **vistas SQL** listas para **Power BI**.
 [![Platform](https://img.shields.io/badge/Platform-Windows-0078D6?logo=windows&logoColor=white)](#requisitos)
 [![SQL Server](https://img.shields.io/badge/SQL%20Server-2019%2B-CC2927?logo=microsoftsqlserver&logoColor=white)](#-modelo-de-datos)
 [![Power BI](https://img.shields.io/badge/Power%20BI-informe-F2C811?logo=powerbi&logoColor=black)](#-dashboard-power-bi)
+[![License](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
 [![Language](https://img.shields.io/badge/C%23-14-239120?logo=csharp&logoColor=white)](#-stack-tecnológico)
 [![Estado](https://img.shields.io/badge/estado-en%20desarrollo-orange)](#-roadmap)
 
@@ -549,8 +550,11 @@ rutas de archivos, tipos de contenido del portapapeles y patrones de actividad.
 
 ## 📄 Licencia
 
-Este repositorio **no incluye todavía un archivo de licencia**. Si vas a publicarlo, añade un
-`LICENSE` (por ejemplo, MIT) para dejar claro cómo puede usarse.
+Este proyecto se distribuye bajo la **licencia MIT**. Puedes usarlo, copiarlo, modificarlo,
+fusionarlo, publicarlo, distribuirlo, sublicenciarlo y vender copias, siempre que conserves el
+aviso de copyright y el texto de la licencia. Se entrega **“tal cual”**, sin garantías.
+
+El texto completo está en [`LICENSE`](./LICENSE).
 
 ---
 
